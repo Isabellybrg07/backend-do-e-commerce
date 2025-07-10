@@ -18,9 +18,9 @@ app.get('/', (req, res) => {
 
 const prisma = new PrismaClient()
 
-app.post('/auth/register', async (req, res) => {
+app.post('/auth/user', async (req, res) => {
     const { body } = req;
-    if (!body.name || !body.email || !body.password || !body.document) {
+    if (!body.name || !body.email || !body.password ) {
         res.status(400).send({
             message: "Requisição inválida"
         });

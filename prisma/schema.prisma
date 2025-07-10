@@ -16,10 +16,10 @@ datasource db {
 
 model User {
   id String @id @default(uuid())
+  user String
   name String
   email String @unique
   password String
-  document String
-  updatedAt DateTime @updatedAt()
-  createdAt DateTime @default(now())
+  birthdate DateTime
+  number String
 }
