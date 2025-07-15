@@ -18,10 +18,10 @@ model User {
   id String @id @default(uuid())
   name String
   birthdate DateTime
-  document String
+ number String
   email String @unique()
   password String
-
+user String
 }
 
 
