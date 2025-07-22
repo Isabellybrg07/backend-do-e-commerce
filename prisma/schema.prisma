@@ -24,4 +24,11 @@ model User {
 user String
 }
 
+model Product {
+  id String @id @default(uuid())
+  name String
+  price Decimal
+  estoque Int
+}
+
 

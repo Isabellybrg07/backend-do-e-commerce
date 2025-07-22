@@ -1,67 +1,137 @@
 import { Router } from "express";
 import { PrismaClient } from "../../generated/prisma";
+import * as zod from 'zod'
+import { authMiddleware } from "../middlewares/authMiddlewares";
+import id from "zod/v4/locales/id.cjs";
 
 const productRoutes = Router();
 const prisma = new PrismaClient();
 
+const ProductRegisterDTO = zod.object({
+  name: zod.string(),
+  price: zod.number(),
+  estoque: zod.number()
+})
+
 // Criar produto
-productRoutes.post('/', async (req, res) => {
+productRoutes.post('/', authMiddleware, async (req, res) => {
+  const { body } = req
   try {
-    const product = await prisma.product.create({
-      data: req.body,
-    });
-    res.status(201).json(product);
+    ProductRegisterDTO.parse(body)
   } catch (error) {
-    res.status(400).json({ error: "Erro ao criar produto" });
+    res.status(400).send({
+      message: "Requisição inválida",
+      details: zod.treeifyError(error as zod.ZodError)
+    })
+    return
   }
+  const createdProduct = await prisma.product.create({
+    data: body
+  })
+  res.send(createdProduct)
 });
+
+
+
 
 // Listar todos os produtos
 productRoutes.get('/', async (req, res) => {
-  try {
     const products = await prisma.product.findMany();
-    res.json(products);
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar produtos" });
-  }
+ 
+    res.send({
+      items: products
+    })
 });
+
+
+
 
 // Buscar produto por ID
 productRoutes.get('/:id', async (req, res) => {
-  try {
-    const product = await prisma.product.findUnique({
-      where: { id: Number(req.params.id) },
+   const {
+    params: {id}
+   } = req
+
+    const product = await prisma.product.findFirst({
+      where: { id }
     });
-    if (!product) return res.status(404).json({ error: "Produto não encontrado" });
-    res.json(product);
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar produto" });
-  }
+
+    if (!product) {
+      res.status(404).send({
+        message: 'Produto não encontrado'
+      })
+      return
+    }
+ 
+    res.send({
+      items: product
+    })
 });
+
+
+
+
+
 
 // Atualizar produto
-productRoutes.put('/:id', async (req, res) => {
+productRoutes.put('/:id', authMiddleware, async (req, res) => {
+  const { body, params } = req;
+  const { id } = params
   try {
-    const product = await prisma.product.update({
-      where: { id: Number(req.params.id) },
-      data: req.body,
-    });
-    res.json(product);
+    ProductRegisterDTO.parse(body)
   } catch (error) {
-    res.status(400).json({ error: "Erro ao atualizar produto" });
+    res.status(400).send({
+      message: "Requisição inválida",
+      details: zod.treeifyError(error as zod.ZodError)
+    })
+    return
   }
+  const foundProduct = await prisma.product.findFirst({
+    where: { id }
+  })
+  if (null === foundProduct) {
+    res.status(404).send({
+      message: "Produto não encontrado!"
+    })
+    return
+  }
+  const updatedProduct = await prisma.product.update({
+    data: body,
+    where: { id }
+  })
+  res.send(updatedProduct)
 });
 
+
+
+
 // Deletar produto
-productRoutes.delete('/:id', async (req, res) => {
-  try {
-    await prisma.product.delete({
-      where: { id: Number(req.params.id) },
+productRoutes.delete('/:id',authMiddleware, async (req, res) => {
+   const {
+    params: {id}
+   } = req
+
+    const product = await prisma.product.findFirst({
+      where: { id }
     });
-    res.status(204).send();
-  } catch (error) {
-    res.status(400).json({ error: "Erro ao deletar produto" });
-  }
+
+    if (!product) {
+      res.status(404).send({
+        message: 'Produto não encontrado'
+      })
+      return
+    }
+
+    const deletedProduct = await prisma.product.delete({
+      where: {id}
+    })
+ 
+    res.send({
+      items: deletedProduct
+    })
 });
+
+
+
 
 export default productRoutes;
