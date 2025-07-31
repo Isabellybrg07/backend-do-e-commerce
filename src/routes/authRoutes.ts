@@ -17,7 +17,7 @@ const UserDTO = zod.object({
     user: zod.string(),
     email: zod.email(),
     password: zod.string(),
-    birthdate: zod.date(),
+    birthdate: zod.string(),
     number: zod.string()
 })
 

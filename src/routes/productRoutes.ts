@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { PrismaClient } from "../../generated/prisma";
 import * as zod from 'zod'
-import { authMiddleware } from "../middlewares/authMiddlewares";
+import { authMiddleware, roleCheck } from "../middlewares/authMiddlewares";
 import id from "zod/v4/locales/id.cjs";
 
 const productRoutes = Router();
@@ -14,7 +14,7 @@ const ProductRegisterDTO = zod.object({
 })
 
 // Criar produto
-productRoutes.post('/', authMiddleware, async (req, res) => {
+productRoutes.post('/', authMiddleware, roleCheck(['ADMIN']), async (req, res) => {
   const { body } = req
   try {
     ProductRegisterDTO.parse(body)

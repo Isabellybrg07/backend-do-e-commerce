@@ -22,7 +22,14 @@ model User {
   email String @unique()
   password String
 user String
+  role      Role     @default(USER)
 }
+
+enum Role {
+  USER
+  ADMIN
+}
+
 
 model Product {
   id String @id @default(uuid())
